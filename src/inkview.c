@@ -56,9 +56,9 @@ EM_JS(int, ScreenHeight, (), { return Module.api.ScreenHeight() });
 
 EM_JS(void, SetOrientation, (int n), { return Module.api.SetOrientation(n) });
 EM_JS(int, GetOrientation, (), { return Module.api.GetOrientation() });
-EM_JS(void, SetGlobalOrientation, (int n), { return Module.api.SetOrientation(n) });
-EM_JS(int, GetGlobalOrientation, (), { return Module.api.SetOrientation(n) });
-EM_JS(int, QueryGSensor, (), { return Module.api.SetOrientation(n) });
+EM_JS(void, SetGlobalOrientation, (int n), { return Module.api.SetGlobalOrientation(n) });
+EM_JS(int, GetGlobalOrientation, (), { return Module.api.GetGlobalOrientation() });
+EM_JS(int, QueryGSensor, (), { return Module.api.QueryGSensor() });
 // void SetGSensor(int mode);
 // int ReadGSensor(int *x, int *y, int *z);
 // void CalibrateGSensor();
@@ -69,6 +69,9 @@ EM_JS(void, DrawPixel, (int x, int y, int color), { Module.api.DrawPixel(x, y, c
 EM_JS(void, DrawLine, (int x1, int y1, int x2, int y2, int color), { Module.api.DrawLine(x1, y1, x2, y2, color); });
 // void DrawRect(int x, int y, int w, int h, int color);
 EM_JS(void, FillArea, (int x, int y, int w, int h, int color), { Module.api.FillArea(x, y, w, h, color) });
+EM_JS(void, DrawRect, (int x, int y, int w, int h, int color), { Module.api.DrawRect(x, y, w, h, color) });
+EM_JS(void, InvertAreaBW, (int x, int y, int w, int h), { Module.api.InvertAreaBW(x, y, w, h) });
+EM_JS(void, DrawCircle, (int x0, int y0, int radius, int color), { Module.api.DrawCircle(x0, y0, radius, color) });
 // void InvertArea(int x, int y, int w, int h);
 // void InvertAreaBW(int x, int y, int w, int h);
 // void DimArea(int x, int y, int w, int h, int color);
@@ -106,8 +109,7 @@ EM_JS(ifont*, jsOpenFont, (const char *name, int size, int aa), {
     var namePtr = __pack_string(fontData.name);
     var familyPtr = __pack_string(fontData.family);
 
-    // Вызываем C-функцию (emscripten добавляет _ к имени)
-    return Module.__create_ifont(
+    var ptr = Module.__create_ifont(
             namePtr,
             familyPtr,
             fontData.size,
@@ -119,8 +121,11 @@ EM_JS(ifont*, jsOpenFont, (const char *name, int size, int aa), {
             fontData.height,
             fontData.linespacing,
             fontData.baseline,
-            fontData.fdata // например, ID объекта
+            0
     );
+    // Store pointer → JS font data mapping so SetFont can look it up
+    Module.api._fontsByPtr.set(ptr, fontData);
+    return ptr;
 });
 ifont *OpenFont(const char *name, int size, int aa) {return jsOpenFont(name, size, aa);}
 
@@ -132,6 +137,10 @@ EM_JS(void, SetFont, (ifont *font, int color), { return Module.api.SetFont(font,
 // void DrawString(int x, int y, const char *s);
 // void DrawStringR(int x, int y, const char *s);
 // int TextRectHeight(int width, const char *s, int flags);
+EM_JS(void, DrawString, (int x, int y, const char *s), { Module.api.DrawString(x, y, UTF8ToString(s)) });
+EM_JS(void, DrawStringR, (int x, int y, const char *s), { Module.api.DrawString(x, y, UTF8ToString(s)) });
+EM_JS(int, StringWidth, (const char *s), { return Module.api.StringWidth(UTF8ToString(s)) });
+EM_JS(int, CharWidth, (unsigned short c), { return Module.api.CharWidth(c) });
 EM_JS(char*, DrawTextRect, (int x, int y, int w, int h, const char *s, int flags), { return __pack_string(Module.api.DrawTextRect(x, y, w, h, UTF8ToString(s), flags)) });
 // char *DrawTextRect2(irect *rect, const char *s);
 // int CharWidth(unsigned  short c);
@@ -142,6 +151,8 @@ EM_JS(char*, DrawTextRect, (int x, int y, int w, int h, const char *s, int flags
 // void SetTextStrength(int n);
 
 EM_JS(void, FullUpdate, (), { return Module.api.FullUpdate() });
+EM_JS(void, PartialUpdate, (int x, int y, int w, int h), { Module.api.PartialUpdate(x, y, w, h) });
+EM_JS(void, PartialUpdateBW, (int x, int y, int w, int h), { Module.api.PartialUpdateBW(x, y, w, h) });
 // void FullUpdateHQ();
 // void SoftUpdate();
 // void PartialUpdate(int x, int y, int w, int h);
@@ -513,3 +524,86 @@ EM_JS(void, FullUpdate, (), { return Module.api.FullUpdate() });
 
 // int GetDialogShow(); // 1 - dialog showing, 0 - dialog hidden.
 // void SetMenuFont(ifont *font); // font for menu (one time using), need to set every times when open menu.
+
+EM_JS(char*, GetLangText, (const char *s), { return __pack_string(Module.api.GetLangText(UTF8ToString(s))) });
+EM_JS(char*, GetDeviceModel, (), { return __pack_string(Module.api.GetDeviceModel()) });
+
+// --- irect helpers (pure C, no JS needed) ---
+
+irect iRect(int x, int y, int w, int h, int flags) {
+    irect r;
+    r.x = (short)x;
+    r.y = (short)y;
+    r.w = (short)w;
+    r.h = (short)h;
+    r.flags = flags;
+    return r;
+}
+
+int IsInRect(int x, int y, const irect *r) {
+    return (x >= r->x && x < r->x + r->w &&
+            y >= r->y && y < r->y + r->h) ? 1 : 0;
+}
+
+void FillAreaRect(const irect *r, int color) {
+    FillArea(r->x, r->y, r->w, r->h, color);
+}
+
+char *DrawTextRect2(irect *rect, const char *s) {
+    return DrawTextRect(rect->x, rect->y, rect->w, rect->h, s,
+                        (rect->flags ? rect->flags : ALIGN_CENTER) | VALIGN_MIDDLE);
+}
+
+int PanelHeight(void) { return 0; }
+
+EM_JS(int, DrawPanel, (const ibitmap *icon, const char *text, const char *title, int percent), {
+    return 0; // no-op: simulator has no system panel
+});
+
+// SetHardTimer: one-shot timer (fires once after ms milliseconds)
+EM_JS(void, SetHardTimer, (const char *name, iv_timerproc tproc, int ms), {
+    if (!Module._timers) Module._timers = {};
+    var timerName = UTF8ToString(name);
+    if (Module._timers[timerName]) {
+        clearTimeout(Module._timers[timerName]);
+        delete Module._timers[timerName];
+    }
+    if (tproc && ms > 0) {
+        Module._timers[timerName] = setTimeout(function() {
+            delete Module._timers[timerName];
+            Module.wasmTable.get(tproc)();
+        }, ms);
+    }
+});
+
+// OpenMenu: reads imenu[] from WASM memory and shows an HTML popup
+// imenu struct: short type (2B) + short index (2B) + char* text (4B) + imenu* submenu (4B) = 12 bytes
+EM_JS(void, OpenMenu, (imenu *menu_ptr, int pos, int x, int y, iv_menuhandler hproc), {
+    var items = [];
+    var ptr = menu_ptr;
+    while (true) {
+        var type  = HEAP16[ptr >> 1];
+        var index = HEAP16[(ptr + 2) >> 1];
+        var textP = HEAP32[(ptr + 4) >> 2];
+        if (type === 0) break;
+        items.push({ type: type, index: index, text: textP ? UTF8ToString(textP) : "" });
+        ptr += 12;
+    }
+    Module.api.OpenMenu(items, x, y, hproc);
+});
+
+// DialogSynchro: synchronous modal dialog using window.prompt
+EM_JS(int, DialogSynchro, (int icon, const char *title, const char *text,
+                            const char *btn1, const char *btn2, const char *btn3), {
+    var msg = UTF8ToString(title) + '\n\n' + UTF8ToString(text) + '\n\n';
+    var b1 = btn1 ? UTF8ToString(btn1) : "";
+    var b2 = btn2 ? UTF8ToString(btn2) : "";
+    var b3 = btn3 ? UTF8ToString(btn3) : "";
+    msg += '[1] ' + b1;
+    if (b2) msg += '  [2] ' + b2;
+    if (b3) msg += '  [3] ' + b3;
+    var result = window.prompt(msg, '1');
+    if (result === null) return 2;
+    var n = parseInt(result);
+    return (n >= 1 && n <= 3) ? n : 2;
+});

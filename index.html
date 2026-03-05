@@ -1,23 +1,106 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>PocketBook Emulation</title>
-  <link rel="stylesheet" href="emulator/css/index.css">
+  <title>PocketBook Emulator</title>
+  <link rel="stylesheet" href="simulator/css/index.css">
 </head>
 <body>
-<div id="container">
-  <h1>PocketBook Emulator</h1>
-  <canvas id="canvas"></canvas>
-  <div id="status">Initializing...</div>
 
-  <div class="controls">
-    <button id="prevPage">Previous Page</button>
-    <button id="nextPage">Next Page</button>
-    <button id="home">Home</button>
-    <button id="back">Back</button>
+  <div id="sidebar">
+    <div id="sidebar-inner">
+      <div class="sidebar-title">Projects</div>
+      <ul id="project-list">
+        <li data-project="demo01">demo</li>
+        <li data-project="calc">calc</li>
+        <li data-project="touch">touch</li>
+        <li data-project="helloworld">helloworld</li>
+      </ul>
+    </div>
+    <button id="sidebar-toggle" title="Toggle sidebar">&#9664;</button>
   </div>
-</div>
 
-  <script type="module" src="emulator/index.mjs"></script>
+  <div id="main">
+    <h1>PocketBook Emulator</h1>
+
+    <div id="launcher">
+      <div class="launcher-header">Applications</div>
+      <div class="launcher-grid">
+        <div class="app-tile" data-project="demo01">
+          <div class="app-icon-box">D</div>
+          <div class="app-name">Demo</div>
+        </div>
+        <div class="app-tile" data-project="calc">
+          <div class="app-icon-box">#</div>
+          <div class="app-name">Calc</div>
+        </div>
+        <div class="app-tile" data-project="touch">
+          <div class="app-icon-box">T</div>
+          <div class="app-name">Touch</div>
+        </div>
+        <div class="app-tile" data-project="helloworld">
+          <div class="app-icon-box">H</div>
+          <div class="app-name">Hello World</div>
+        </div>
+      </div>
+    </div>
+
+    <canvas id="canvas"></canvas>
+    <div id="status">Initializing...</div>
+    <div class="controls">
+      <button id="prevPage">&#9664; Prev</button>
+      <button id="nextPage">Next &#9654;</button>
+      <button id="home">Home</button>
+      <button id="back">Back</button>
+      <button id="rotate">&#x21BB; Rotate</button>
+    </div>
+  </div>
+
+  <script>
+    var PROJECTS = ['demo01', 'calc', 'touch', 'helloworld'];
+    var hash = location.hash.slice(1);
+    var activeProject = PROJECTS.indexOf(hash) >= 0 ? hash : null;
+
+    // Mark active sidebar item
+    document.querySelectorAll('#project-list li').forEach(function(li) {
+      li.classList.toggle('active', li.dataset.project === activeProject);
+      li.addEventListener('click', function() {
+        location.hash = li.dataset.project;
+        location.reload();
+      });
+    });
+
+    // Launcher tile clicks
+    document.querySelectorAll('.app-tile').forEach(function(tile) {
+      tile.addEventListener('click', function() {
+        location.hash = tile.dataset.project;
+        location.reload();
+      });
+    });
+
+    // Sidebar collapse toggle
+    var sidebar = document.getElementById('sidebar');
+    var toggleBtn = document.getElementById('sidebar-toggle');
+    toggleBtn.addEventListener('click', function() {
+      var collapsed = sidebar.classList.toggle('collapsed');
+      toggleBtn.textContent = collapsed ? '\u25B6' : '\u25C4';
+    });
+
+    // Show launcher or app UI
+    if (!activeProject) {
+      document.getElementById('canvas').style.display = 'none';
+      document.getElementById('status').style.display = 'none';
+      document.querySelector('.controls').style.display = 'none';
+    } else {
+      document.getElementById('launcher').style.display = 'none';
+    }
+  </script>
+
+  <script type="module">
+    import { initApp } from './simulator/inkview-emu.mjs';
+    var hash = location.hash.slice(1);
+    var project = ['demo01', 'calc', 'touch', 'helloworld'].indexOf(hash) >= 0 ? hash : null;
+    if (project) initApp(project);
+  </script>
+
 </body>
 </html>

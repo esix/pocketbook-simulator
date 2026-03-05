@@ -737,6 +737,7 @@ void FillArea(int x, int y, int w, int h, int color);
 void InvertArea(int x, int y, int w, int h);
 void InvertAreaBW(int x, int y, int w, int h);
 void DimArea(int x, int y, int w, int h, int color);
+void DrawCircle(int x0, int y0, int radius, int color);
 void DrawSelection(int x, int y, int w, int h, int color);
 void DitherArea(int x, int y, int w, int h, int levels, int method);
 void Stretch(const unsigned char *src, int format, int sw, int sh, int scanline, int dx, int dy, int dw, int dh, int rotate);
@@ -1121,6 +1122,17 @@ int recurse_action(const char *path, iv_recurser proc, void *data, int creative,
 
 // dialog show on the screen
 int GetDialogShow(); // 1 - dialog showing, 0 - dialog hidden.
+
+// Synchronous dialog - returns 1/2/3 for button1/button2/button3
+int DialogSynchro(int icon, const char *title, const char *text,
+                  const char *button1, const char *button2, const char *button3);
+
+// irect helpers
+irect iRect(int x, int y, int w, int h, int flags);
+int   IsInRect(int x, int y, const irect *r);
+
+// Fill a rectangle given an irect
+void FillAreaRect(const irect *r, int color);
 
 #ifdef __cplusplus
 }

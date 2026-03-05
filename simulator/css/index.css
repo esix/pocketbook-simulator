@@ -1,0 +1,276 @@
+@font-face {
+  font-family: 'LiberationSans';
+  src: url('../fonts/LiberationSans-Regular.ttf');
+}
+@font-face {
+  font-family: 'LiberationSans-Bold';
+  src: url('../fonts/LiberationSans-Bold.ttf');
+}
+@font-face {
+  font-family: 'LiberationSans-Italic';
+  src: url('../fonts/LiberationSans-Italic.ttf');
+}
+@font-face {
+  font-family: 'LiberationSans-BoldItalic';
+  src: url('../fonts/LiberationSans-BoldItalic.ttf');
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  height: 100%;
+}
+
+body {
+  display: flex;
+  background: #d8d8d8;
+  font-family: Arial, sans-serif;
+  overflow: hidden;
+}
+
+/* ── Sidebar ── */
+
+#sidebar {
+  display: flex;
+  flex-direction: row;      /* inner + toggle button sit side by side */
+  flex-shrink: 0;
+  width: 180px;
+  background: #242424;
+  color: #ddd;
+  overflow: hidden;
+  transition: width 0.2s ease;
+}
+
+#sidebar.collapsed {
+  width: 36px;
+}
+
+#sidebar-inner {
+  flex: 1;
+  min-width: 0;             /* prevent flex blowout */
+  padding: 16px 10px;
+  overflow: hidden;
+  opacity: 1;
+  transition: opacity 0.15s ease;
+  white-space: nowrap;
+}
+
+#sidebar.collapsed #sidebar-inner {
+  display: none;
+}
+
+.sidebar-title {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: #666;
+  margin-bottom: 12px;
+}
+
+#project-list {
+  list-style: none;
+}
+
+#project-list li {
+  padding: 8px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  margin-bottom: 3px;
+  transition: background 0.1s;
+}
+
+#project-list li:hover {
+  background: #383838;
+}
+
+#project-list li.active {
+  background: #0078d4;
+  color: #fff;
+}
+
+/* The thin strip that acts as a toggle handle */
+#sidebar-toggle {
+  flex-shrink: 0;
+  align-self: stretch;      /* fill full sidebar height */
+  width: 36px;
+  background: #1a1a1a;
+  border: none;
+  border-left: 1px solid #333;
+  color: #888;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 0;
+  transition: color 0.1s, background 0.1s;
+}
+
+#sidebar-toggle:hover {
+  background: #2e2e2e;
+  color: #fff;
+}
+
+/* ── Main content ── */
+
+#main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+  overflow: auto;
+}
+
+h1 {
+  font-size: 16px;
+  font-weight: normal;
+  color: #555;
+  margin-bottom: 14px;
+  letter-spacing: 0.5px;
+}
+
+canvas {
+  border: 2px solid #444;
+  background: white;
+  box-shadow: 0 2px 14px rgba(0,0,0,0.3);
+  display: block;
+  /* Scale down to fit viewport while keeping the 600x800 aspect ratio */
+  max-height: calc(100vh - 120px);
+  width: auto;
+}
+
+#status {
+  margin-top: 8px;
+  padding: 5px 16px;
+  background: #fff;
+  border-radius: 4px;
+  font-size: 12px;
+  color: #666;
+  max-width: 600px;
+  width: 100%;
+  text-align: center;
+}
+
+.controls {
+  margin-top: 8px;
+  display: flex;
+  gap: 6px;
+}
+
+.controls button {
+  padding: 7px 14px;
+  background: #444;
+  color: #eee;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: background 0.1s;
+}
+
+.controls button:hover {
+  background: #222;
+}
+
+/* ── Launcher ── */
+
+#launcher {
+  border: 2px solid #444;
+  background: white;
+  box-shadow: 0 2px 14px rgba(0,0,0,0.3);
+  height: 800px;
+  max-height: calc(100vh - 120px);
+  aspect-ratio: 600 / 800;
+  padding: 40px 40px 50px;
+  font-family: 'LiberationSans', Arial, sans-serif;
+  overflow: hidden;
+}
+
+.launcher-header {
+  font-size: 20px;
+  font-weight: bold;
+  text-align: center;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #000;
+  margin-bottom: 40px;
+  color: #000;
+}
+
+.launcher-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 30px;
+  justify-content: center;
+}
+
+.app-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  width: 100px;
+}
+
+.app-icon-box {
+  width: 80px;
+  height: 80px;
+  border: 2px solid #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 30px;
+  font-weight: bold;
+  color: #000;
+  background: white;
+  transition: background 0.1s;
+}
+
+.app-tile:hover .app-icon-box {
+  background: #ddd;
+}
+
+.app-name {
+  font-size: 14px;
+  color: #000;
+  text-align: center;
+}
+
+/* ── Inkview popup menu ── */
+
+.iv-menu {
+  position: fixed;
+  background: white;
+  border: 2px solid #000;
+  min-width: 160px;
+  z-index: 1000;
+  font-family: 'LiberationSans', Arial, sans-serif;
+  font-size: 16px;
+  box-shadow: 3px 3px 0 #000;
+}
+
+.iv-menu-header {
+  padding: 6px 12px;
+  font-weight: bold;
+  border-bottom: 1px solid #000;
+  background: #eee;
+  font-size: 14px;
+}
+
+.iv-menu-item {
+  padding: 10px 14px;
+  cursor: pointer;
+  border-bottom: 1px solid #ccc;
+}
+
+.iv-menu-item:last-child {
+  border-bottom: none;
+}
+
+.iv-menu-item:hover {
+  background: #000;
+  color: white;
+}
