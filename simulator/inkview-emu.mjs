@@ -368,7 +368,18 @@ function setupEventHandlers(api) {
 
   document.addEventListener('keydown', function(event) {
     if (event.keyCode === 27) { goHome(); return; }
-    callMainHandler(EVT_KEYPRESS, event.keyCode, 0);
+    // Map browser key codes to InkView key constants
+    const KEY_MAP = {
+      37: 0x13,  // ArrowLeft  → KEY_LEFT
+      38: 0x11,  // ArrowUp    → KEY_UP
+      39: 0x14,  // ArrowRight → KEY_RIGHT
+      40: 0x12,  // ArrowDown  → KEY_DOWN
+      13: 0x0a,  // Enter      → KEY_OK
+       8: 0x08,  // Backspace  → KEY_DELETE
+    };
+    var code = KEY_MAP[event.keyCode] !== undefined ? KEY_MAP[event.keyCode] : event.keyCode;
+    if (KEY_MAP[event.keyCode] !== undefined) event.preventDefault();
+    callMainHandler(EVT_KEYPRESS, code, 0);
   });
 
   document.getElementById('prevPage').addEventListener('click', function() {

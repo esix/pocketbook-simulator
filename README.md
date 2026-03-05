@@ -44,6 +44,7 @@ make demo01
 make calc
 make touch
 make helloworld
+make game2048
 
 # Rebuild inkview.o after changing src/inkview.c
 rm lib/inkview.o && make lib/inkview.o
@@ -77,7 +78,8 @@ pocketbook-simulator/
 │   ├── demo01/                Simple drawing demo
 │   ├── calc/                  Calculator app
 │   ├── touch/                 Touch/pointer demo
-│   └── helloworld/            Multi-file C++ app with menu
+│   ├── helloworld/            Multi-file C++ app with menu
+│   └── 2048/                  2048 puzzle game
 ├── index.html                 Main page — launcher + app shell
 └── Makefile
 ```
@@ -109,7 +111,7 @@ For C++ projects with multiple files, list all sources and add `-I` flags for su
 | Drawing | `DrawPixel`, `DrawLine`, `DrawRect`, `FillArea`, `FillAreaRect`, `DrawCircle`, `InvertAreaBW` |
 | Fonts | `OpenFont`, `CloseFont`, `SetFont`, `StringWidth`, `CharWidth` |
 | Text | `DrawString`, `DrawTextRect`, `DrawTextRect2` |
-| Events | `EVT_INIT`, `EVT_SHOW`, `EVT_EXIT`, `EVT_POINTERDOWN/UP/MOVE`, `EVT_KEYPRESS`, `EVT_ORIENTATION` |
+| Events | `EVT_INIT`, `EVT_SHOW`, `EVT_EXIT`, `EVT_POINTERDOWN/UP/MOVE`, `EVT_KEYPRESS`, `EVT_ORIENTATION` — browser arrow/Enter keys mapped to InkView `KEY_*` constants |
 | Timers | `SetHardTimer` |
 | UI | `OpenMenu`, `DialogSynchro` |
 | Orientation | `SetOrientation`, `GetOrientation` — 0°/90°/180°/270° |
@@ -128,3 +130,4 @@ The simulated device is 600×800 pixels (portrait), matching a PocketBook 6" scr
 | **calc** | Calculator — fonts, drawing, keyboard input |
 | **touch** | Pointer tracking — circle following the cursor |
 | **helloworld** | Multi-file C++ app with title bar, touch drawing, and dropdown menu ([source](https://github.com/JuanJakobo/Pocketbook-HelloWorld)) |
+| **2048** | 2048 puzzle game — swipe/arrow-key input, slide+pop animations, grayscale palette with tile patterns, best score in localStorage |

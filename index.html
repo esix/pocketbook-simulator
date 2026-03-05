@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>PocketBook Emulator</title>
+  <title>PocketBook Simulator</title>
   <link rel="stylesheet" href="simulator/css/index.css">
 </head>
 <body>
@@ -14,15 +14,14 @@
         <li data-project="calc">calc</li>
         <li data-project="touch">touch</li>
         <li data-project="helloworld">helloworld</li>
+        <li data-project="2048">2048</li>
       </ul>
     </div>
     <button id="sidebar-toggle" title="Toggle sidebar">&#9664;</button>
   </div>
 
   <div id="main">
-    <h1>PocketBook Emulator</h1>
-
-    <div id="launcher">
+<div id="launcher">
       <div class="launcher-header">Applications</div>
       <div class="launcher-grid">
         <div class="app-tile" data-project="demo01">
@@ -41,6 +40,10 @@
           <div class="app-icon-box">H</div>
           <div class="app-name">Hello World</div>
         </div>
+        <div class="app-tile" data-project="2048">
+          <div class="app-icon-box">2048</div>
+          <div class="app-name">2048</div>
+        </div>
       </div>
     </div>
 
@@ -56,7 +59,7 @@
   </div>
 
   <script>
-    var PROJECTS = ['demo01', 'calc', 'touch', 'helloworld'];
+    var PROJECTS = ['demo01', 'calc', 'touch', 'helloworld', '2048'];
     var hash = location.hash.slice(1);
     var activeProject = PROJECTS.indexOf(hash) >= 0 ? hash : null;
 
@@ -98,7 +101,7 @@
   <script type="module">
     import { initApp } from './simulator/inkview-emu.mjs';
     var hash = location.hash.slice(1);
-    var project = ['demo01', 'calc', 'touch', 'helloworld'].indexOf(hash) >= 0 ? hash : null;
+    var project = ['demo01', 'calc', 'touch', 'helloworld', '2048'].indexOf(hash) >= 0 ? hash : null;
     if (project) initApp(project);
   </script>
 
