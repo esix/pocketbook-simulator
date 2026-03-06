@@ -555,6 +555,15 @@ typedef struct ifont_s {
 
 } ifont;
 
+typedef struct {
+	int x;         // touch X coordinate
+	int y;         // touch Y coordinate
+	int pressure;  // touch pressure (0-255)
+	int id;        // touch slot id (multitouch)
+} iv_mtinfo;
+
+iv_mtinfo *GetTouchInfo(void);
+
 typedef struct ievent_s {
 
 	iv_handler hproc;

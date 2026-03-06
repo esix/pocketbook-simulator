@@ -1,5 +1,6 @@
 #include "inkview.h"
 #include <emscripten.h>
+#include <unistd.h>
 
 // helper function
 EM_JS(char*, __pack_string, (char* jsstr), {
@@ -149,6 +150,15 @@ EM_JS(char*, DrawTextRect, (int x, int y, int w, int h, const char *s, int flags
 // int DrawSymbol(int x, int y, int symbol);
 // void RegisterFontList(ifont **fontlist, int count);
 // void SetTextStrength(int n);
+
+EM_JS(iv_mtinfo*, GetTouchInfo, (), {
+    if (!Module._mtbuf) { Module._mtbuf = Module._malloc(16); }
+    HEAP32[(Module._mtbuf)      >> 2] = (Module._touchX | 0);
+    HEAP32[(Module._mtbuf + 4)  >> 2] = (Module._touchY | 0);
+    HEAP32[(Module._mtbuf + 8)  >> 2] = 255;
+    HEAP32[(Module._mtbuf + 12) >> 2] = 0;
+    return Module._mtbuf;
+});
 
 EM_JS(void, FullUpdate, (), { return Module.api.FullUpdate() });
 EM_JS(void, PartialUpdate, (int x, int y, int w, int h), { Module.api.PartialUpdate(x, y, w, h) });
@@ -308,8 +318,8 @@ EM_JS(void, PartialUpdateBW, (int x, int y, int w, int h), { Module.api.PartialU
 // DIR *iv_opendir(const char *dirname);
 // struct dirent *iv_readdir(DIR *dir);
 // int iv_closedir(DIR *dir);
-// int iv_unlink(const char *name);
-// int iv_rmdir(const char *name);
+int iv_unlink(const char *name) { return unlink(name); }
+int iv_rmdir(const char *name)  { return rmdir(name); }
 // int iv_truncate(const char *name, int length);
 // int iv_rename(const char *oldname, const char *newname);
 // void iv_preload(const char *name, int count);
@@ -590,6 +600,47 @@ EM_JS(void, OpenMenu, (imenu *menu_ptr, int pos, int x, int y, iv_menuhandler hp
         ptr += 12;
     }
     Module.api.OpenMenu(items, x, y, hproc);
+});
+
+EM_JS(void, SetWeakTimer, (const char *name, iv_timerproc tproc, int ms), {
+    if (!Module._timers) Module._timers = {};
+    var timerName = UTF8ToString(name);
+    if (Module._timers[timerName]) {
+        clearTimeout(Module._timers[timerName]);
+        delete Module._timers[timerName];
+    }
+    if (tproc && ms > 0) {
+        Module._timers[timerName] = setTimeout(function() {
+            delete Module._timers[timerName];
+            Module.wasmTable.get(tproc)();
+        }, ms);
+    }
+});
+
+EM_JS(void, Message, (int icon, const char *title, const char *text, int timeout), {
+    Module.api.Message(icon, UTF8ToString(title), UTF8ToString(text), timeout);
+});
+
+EM_JS(void, Dialog, (int icon, const char *title, const char *text,
+                      const char *btn1, const char *btn2, iv_dialoghandler hproc), {
+    Module.api.Dialog(icon, UTF8ToString(title), UTF8ToString(text),
+        btn1 ? UTF8ToString(btn1) : null,
+        btn2 ? UTF8ToString(btn2) : null,
+        hproc);
+});
+
+EM_JS(void, OpenProgressbar, (int icon, const char *title, const char *text,
+                               int percent, iv_dialoghandler hproc), {
+    Module.api.OpenProgressbar(icon, UTF8ToString(title), UTF8ToString(text), percent, hproc);
+});
+
+EM_JS(int, UpdateProgressbar, (const char *text, int percent), {
+    Module.api.UpdateProgressbar(UTF8ToString(text), percent);
+    return 0;
+});
+
+EM_JS(void, CloseProgressbar, (), {
+    Module.api.CloseProgressbar();
 });
 
 // DialogSynchro: synchronous modal dialog using window.prompt

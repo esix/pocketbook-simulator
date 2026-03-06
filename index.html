@@ -10,10 +10,13 @@
     <div id="sidebar-inner">
       <div class="sidebar-title">Projects</div>
       <ul id="project-list">
-        <li data-project="demo01">demo</li>
-        <li data-project="calc">calc</li>
-        <li data-project="touch">touch</li>
         <li data-project="helloworld">helloworld</li>
+        <li data-project="touch">touch</li>
+        <li data-project="demo01">demo01</li>
+        <li data-project="demo04">demo04</li>
+        <li data-project="demo06">demo06</li>
+        <li data-project="demo07">demo07</li>
+        <li data-project="calc">calc</li>
         <li data-project="2048">2048</li>
       </ul>
     </div>
@@ -24,21 +27,33 @@
 <div id="launcher">
       <div class="launcher-header">Applications</div>
       <div class="launcher-grid">
-        <div class="app-tile" data-project="demo01">
-          <div class="app-icon-box">D</div>
-          <div class="app-name">Demo</div>
-        </div>
-        <div class="app-tile" data-project="calc">
-          <div class="app-icon-box">#</div>
-          <div class="app-name">Calc</div>
+        <div class="app-tile" data-project="helloworld">
+          <div class="app-icon-box">H</div>
+          <div class="app-name">Hello World</div>
         </div>
         <div class="app-tile" data-project="touch">
           <div class="app-icon-box">T</div>
           <div class="app-name">Touch</div>
         </div>
-        <div class="app-tile" data-project="helloworld">
-          <div class="app-icon-box">H</div>
-          <div class="app-name">Hello World</div>
+        <div class="app-tile" data-project="demo01">
+          <div class="app-icon-box">D</div>
+          <div class="app-name">Demo 01</div>
+        </div>
+        <div class="app-tile" data-project="demo04">
+          <div class="app-icon-box">D4</div>
+          <div class="app-name">Demo 04</div>
+        </div>
+        <div class="app-tile" data-project="demo06">
+          <div class="app-icon-box">UI</div>
+          <div class="app-name">Demo 06</div>
+        </div>
+        <div class="app-tile" data-project="demo07">
+          <div class="app-icon-box">DB</div>
+          <div class="app-name">Demo 07</div>
+        </div>
+        <div class="app-tile" data-project="calc">
+          <div class="app-icon-box">#</div>
+          <div class="app-name">Calc</div>
         </div>
         <div class="app-tile" data-project="2048">
           <div class="app-icon-box">2048</div>
@@ -59,7 +74,7 @@
   </div>
 
   <script>
-    var PROJECTS = ['demo01', 'calc', 'touch', 'helloworld', '2048'];
+    var PROJECTS = ['helloworld', 'touch', 'demo01', 'demo04', 'demo06', 'demo07', 'calc', '2048'];
     var hash = location.hash.slice(1);
     var activeProject = PROJECTS.indexOf(hash) >= 0 ? hash : null;
 
@@ -101,7 +116,7 @@
   <script type="module">
     import { initApp } from './simulator/inkview-emu.mjs';
     var hash = location.hash.slice(1);
-    var project = ['demo01', 'calc', 'touch', 'helloworld', '2048'].indexOf(hash) >= 0 ? hash : null;
+    var project = ['helloworld', 'touch', 'demo01', 'demo04', 'demo06', 'demo07', 'calc', '2048'].indexOf(hash) >= 0 ? hash : null;
     if (project) initApp(project);
   </script>
 

@@ -36,6 +36,15 @@ helloworld: $(HELLOWORLD_SRC) lib/inkview.o
 game2048: projects/2048/game2048.cpp lib/inkview.o
 	$(CC) $(CFLAGS) projects/2048/game2048.cpp lib/inkview.o -o projects/2048/index.mjs $(EXPORTED_FUNCTIONS) $(EXPORTED_RUNTIME) $(ADDITIONAL_LIBS) $(MODULARIZE)
 
+demo04: projects/demo04/demo04.cpp lib/inkview.o
+	$(CC) $(CFLAGS) projects/demo04/demo04.cpp lib/inkview.o -o projects/$@/index.mjs $(EXPORTED_FUNCTIONS) $(EXPORTED_RUNTIME) $(ADDITIONAL_LIBS) $(MODULARIZE)
+
+demo06: projects/demo06/demo06.cpp lib/inkview.o
+	$(CC) $(CFLAGS) projects/demo06/demo06.cpp lib/inkview.o -o projects/$@/index.mjs $(EXPORTED_FUNCTIONS) $(EXPORTED_RUNTIME) $(ADDITIONAL_LIBS) $(MODULARIZE)
+
+demo07: projects/demo07/demo07.cpp lib/inkview.o
+	$(CC) $(CFLAGS) projects/demo07/demo07.cpp lib/inkview.o -o projects/$@/index.mjs $(EXPORTED_FUNCTIONS) $(EXPORTED_RUNTIME) $(ADDITIONAL_LIBS) -s USE_SQLITE3=1 $(MODULARIZE)
+
 clean:
 	rm -f lib/*.o lib/*.a projects/demo01/*.mjs projects/demo01/*.wasm
 

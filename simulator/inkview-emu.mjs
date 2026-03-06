@@ -110,9 +110,8 @@ class InkviewApi {
   DrawCircle(x0, y0, radius, color) {
     ctx.beginPath();
     ctx.arc(x0, y0, radius, 0, 2 * Math.PI);
-    ctx.strokeStyle = colorToCSS(color);
-    ctx.lineWidth = 1;
-    ctx.stroke();
+    ctx.fillStyle = colorToCSS(color);
+    ctx.fill();
   }
 
   InvertAreaBW(x, y, w, h) {
@@ -271,6 +270,98 @@ class InkviewApi {
   PartialUpdate(x, y, w, h) {}
   PartialUpdateBW(x, y, w, h) {}
 
+  // --- Timers ---
+
+  SetHardTimer(name, proc, ms) {
+    if (!_Module._timers) _Module._timers = {};
+    if (_Module._timers[name]) { clearTimeout(_Module._timers[name]); delete _Module._timers[name]; }
+    if (proc && ms > 0) {
+      _Module._timers[name] = setTimeout(() => {
+        delete _Module._timers[name];
+        _Module.wasmTable.get(proc)();
+      }, ms);
+    }
+  }
+
+  SetWeakTimer(name, proc, ms) { this.SetHardTimer(name, proc, ms); }
+
+  // --- Dialogs / UI overlays ---
+
+  _makeOverlay() {
+    const ov = document.createElement('div');
+    ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1000;display:flex;align-items:center;justify-content:center;';
+    const box = document.createElement('div');
+    box.style.cssText = 'background:#fff;border:2px solid #000;padding:24px 28px;min-width:320px;max-width:520px;font-family:sans-serif;box-shadow:4px 4px 0 #000;';
+    ov.appendChild(box);
+    document.body.appendChild(ov);
+    return {ov, box};
+  }
+
+  _iconChar(icon) { return ['', 'ℹ️', '❓', '⚠️', '✖️'][icon] || ''; }
+
+  _dialogHTML(icon, title, text) {
+    return `<div style="font-size:18px;font-weight:bold;margin-bottom:10px;border-bottom:1px solid #000;padding-bottom:8px;">${this._iconChar(icon)} ${title}</div><div style="margin:12px 0;line-height:1.5;">${text.replace(/\n/g, '<br>')}</div>`;
+  }
+
+  Message(icon, title, text, timeout) {
+    const {ov, box} = this._makeOverlay();
+    box.innerHTML = this._dialogHTML(icon, title, text) + '<div style="font-size:12px;color:#666;margin-top:8px;">Click to dismiss</div>';
+    const dismiss = () => ov.remove();
+    ov.addEventListener('click', dismiss);
+    if (timeout > 0) setTimeout(dismiss, timeout);
+  }
+
+  Dialog(icon, title, text, btn1, btn2, hproc) {
+    const {ov, box} = this._makeOverlay();
+    const btns = [btn1, btn2].filter(Boolean);
+    let html = this._dialogHTML(icon, title, text) + '<div style="display:flex;gap:10px;margin-top:16px;">';
+    btns.forEach((label, i) => {
+      html += `<button data-idx="${i+1}" style="flex:1;padding:10px;border:2px solid #000;background:#fff;font-size:15px;cursor:pointer;">${label}</button>`;
+    });
+    html += '</div>';
+    box.innerHTML = html;
+    box.querySelectorAll('button').forEach(btn => {
+      btn.addEventListener('click', () => {
+        ov.remove();
+        if (hproc && _Module) _Module.wasmTable.get(hproc)(+btn.dataset.idx);
+      });
+    });
+  }
+
+  _progressOverlay = null;
+  _progressBar = null;
+  _progressText = null;
+
+  OpenProgressbar(icon, title, text, percent, hproc) {
+    if (this._progressOverlay) this._progressOverlay.remove();
+    const {ov, box} = this._makeOverlay();
+    this._progressOverlay = ov;
+    box.innerHTML = this._dialogHTML(icon, title, text) +
+      `<div style="border:2px solid #000;height:24px;margin:12px 0;"><div id="iv-pb-bar" style="background:#000;height:100%;width:${percent}%;transition:width .2s;"></div></div>` +
+      `<div id="iv-pb-text" style="font-size:14px;margin-bottom:12px;">${text}</div>` +
+      (hproc ? `<button id="iv-pb-cancel" style="padding:8px 20px;border:2px solid #000;background:#fff;font-size:14px;cursor:pointer;">Cancel</button>` : '');
+    this._progressBar  = box.querySelector('#iv-pb-bar');
+    this._progressText = box.querySelector('#iv-pb-text');
+    const cancelBtn = box.querySelector('#iv-pb-cancel');
+    if (cancelBtn) {
+      cancelBtn.addEventListener('click', () => {
+        this.CloseProgressbar();
+        if (_Module) _Module.wasmTable.get(hproc)(1);
+      });
+    }
+  }
+
+  UpdateProgressbar(text, percent) {
+    if (this._progressText) this._progressText.textContent = text;
+    if (this._progressBar)  this._progressBar.style.width  = Math.min(100, percent) + '%';
+  }
+
+  CloseProgressbar() {
+    if (this._progressOverlay) { this._progressOverlay.remove(); this._progressOverlay = null; }
+    this._progressBar = null;
+    this._progressText = null;
+  }
+
   // --- Language ---
 
   GetLangText(s) {
@@ -338,31 +429,32 @@ export async function initApp(projectName) {
 const ORIENTATION_CYCLE = [ROTATE0, ROTATE90, ROTATE180, ROTATE270];
 
 function setupEventHandlers(api) {
-  canvas.addEventListener('mousedown', function(event) {
+  function canvasCoords(event) {
     const rect = canvas.getBoundingClientRect();
     const scaleX = canvas.width / rect.width;
     const scaleY = canvas.height / rect.height;
-    const x = Math.round((event.clientX - rect.left) * scaleX);
-    const y = Math.round((event.clientY - rect.top) * scaleY);
+    return {
+      x: Math.round((event.clientX - rect.left) * scaleX),
+      y: Math.round((event.clientY - rect.top) * scaleY),
+    };
+  }
+
+  canvas.addEventListener('mousedown', function(event) {
+    const {x, y} = canvasCoords(event);
+    _Module._touchX = x; _Module._touchY = y;
     callMainHandler(EVT_POINTERDOWN, x, y);
   });
 
   canvas.addEventListener('mouseup', function(event) {
-    const rect = canvas.getBoundingClientRect();
-    const scaleX = canvas.width / rect.width;
-    const scaleY = canvas.height / rect.height;
-    const x = Math.round((event.clientX - rect.left) * scaleX);
-    const y = Math.round((event.clientY - rect.top) * scaleY);
+    const {x, y} = canvasCoords(event);
+    _Module._touchX = x; _Module._touchY = y;
     callMainHandler(EVT_POINTERUP, x, y);
   });
 
   canvas.addEventListener('mousemove', function(event) {
     if (event.buttons === 0) return;
-    const rect = canvas.getBoundingClientRect();
-    const scaleX = canvas.width / rect.width;
-    const scaleY = canvas.height / rect.height;
-    const x = Math.round((event.clientX - rect.left) * scaleX);
-    const y = Math.round((event.clientY - rect.top) * scaleY);
+    const {x, y} = canvasCoords(event);
+    _Module._touchX = x; _Module._touchY = y;
     callMainHandler(EVT_POINTERMOVE, x, y);
   });
 
@@ -376,6 +468,8 @@ function setupEventHandlers(api) {
       40: 0x12,  // ArrowDown  → KEY_DOWN
       13: 0x0a,  // Enter      → KEY_OK
        8: 0x08,  // Backspace  → KEY_DELETE
+      33: 0x18,  // PageUp     → KEY_PREV
+      34: 0x19,  // PageDown   → KEY_NEXT
     };
     var code = KEY_MAP[event.keyCode] !== undefined ? KEY_MAP[event.keyCode] : event.keyCode;
     if (KEY_MAP[event.keyCode] !== undefined) event.preventDefault();
@@ -383,10 +477,10 @@ function setupEventHandlers(api) {
   });
 
   document.getElementById('prevPage').addEventListener('click', function() {
-    callMainHandler(EVT_KEYPRESS, 37, 0);
+    callMainHandler(EVT_KEYPRESS, 0x18, 0);  // KEY_PREV
   });
   document.getElementById('nextPage').addEventListener('click', function() {
-    callMainHandler(EVT_KEYPRESS, 39, 0);
+    callMainHandler(EVT_KEYPRESS, 0x19, 0);  // KEY_NEXT
   });
   document.getElementById('home').addEventListener('click', function() {
     goHome();
