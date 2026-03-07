@@ -267,6 +267,7 @@ class InkviewApi {
   // --- Screen update ---
 
   FullUpdate() {}
+  SoftUpdate() {}
   PartialUpdate(x, y, w, h) {}
   PartialUpdateBW(x, y, w, h) {}
 

@@ -33,8 +33,8 @@ helloworld: $(HELLOWORLD_SRC) lib/inkview.o
 		-o projects/$@/index.mjs \
 		$(EXPORTED_FUNCTIONS) $(EXPORTED_RUNTIME) $(ADDITIONAL_LIBS) $(MODULARIZE)
 
-game2048: projects/2048/game2048.cpp lib/inkview.o
-	$(CC) $(CFLAGS) projects/2048/game2048.cpp lib/inkview.o -o projects/2048/index.mjs $(EXPORTED_FUNCTIONS) $(EXPORTED_RUNTIME) $(ADDITIONAL_LIBS) $(MODULARIZE)
+game2048: projects/2048/game2048.c lib/inkview.o
+	$(CC) $(CFLAGS) projects/2048/game2048.c lib/inkview.o -o projects/2048/index.mjs $(EXPORTED_FUNCTIONS) $(EXPORTED_RUNTIME) $(ADDITIONAL_LIBS) $(MODULARIZE)
 
 demo04: projects/demo04/demo04.cpp lib/inkview.o
 	$(CC) $(CFLAGS) projects/demo04/demo04.cpp lib/inkview.o -o projects/$@/index.mjs $(EXPORTED_FUNCTIONS) $(EXPORTED_RUNTIME) $(ADDITIONAL_LIBS) $(MODULARIZE)

@@ -161,10 +161,10 @@ EM_JS(iv_mtinfo*, GetTouchInfo, (), {
 });
 
 EM_JS(void, FullUpdate, (), { return Module.api.FullUpdate() });
+EM_JS(void, SoftUpdate, (), { Module.api.SoftUpdate() });
 EM_JS(void, PartialUpdate, (int x, int y, int w, int h), { Module.api.PartialUpdate(x, y, w, h) });
 EM_JS(void, PartialUpdateBW, (int x, int y, int w, int h), { Module.api.PartialUpdateBW(x, y, w, h) });
 // void FullUpdateHQ();
-// void SoftUpdate();
 // void PartialUpdate(int x, int y, int w, int h);
 // void PartialUpdateBlack(int x, int y, int w, int h);
 // void PartialUpdateBW(int x, int y, int w, int h);
