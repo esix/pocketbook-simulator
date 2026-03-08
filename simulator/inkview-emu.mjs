@@ -125,11 +125,13 @@ class InkviewApi {
   // --- Fonts & Text ---
 
   OpenFont(name, size, aa) {
+    // Alias fonts not available in the simulator
+    const cssName = name.startsWith('DejaVu') ? 'LiberationSans' : name;
     // Returns JS object; jsOpenFont in inkview.c will call _create_ifont
     // and store the ptr → fontData mapping in _fontsByPtr.
     return {
-      name: name,
-      family: name,
+      name: cssName,
+      family: cssName,
       size: size,
       aa: aa,
       isbold: 0,
@@ -262,6 +264,27 @@ class InkviewApi {
 
     document.body.appendChild(menuEl);
     setTimeout(() => document.addEventListener('mousedown', onOutsideMousedown), 0);
+  }
+
+  // ibitmap: 1-bit packed (depth=1, MSB first) or 8-bit grayscale
+  DrawBitmap(x, y, w, h, depth, scanline, data) {
+    const imgData = ctx.createImageData(w, h);
+    const pixels = imgData.data;
+    for (let row = 0; row < h; row++) {
+      for (let col = 0; col < w; col++) {
+        let c;
+        if (depth === 1) {
+          const bit = (data[row * scanline + (col >> 3)] >> (7 - (col & 7))) & 1;
+          c = bit ? 0 : 255;
+        } else {
+          c = data[row * scanline + col];
+        }
+        const idx = (row * w + col) * 4;
+        pixels[idx] = pixels[idx + 1] = pixels[idx + 2] = c;
+        pixels[idx + 3] = 255;
+      }
+    }
+    ctx.putImageData(imgData, x, y);
   }
 
   // --- Screen update ---

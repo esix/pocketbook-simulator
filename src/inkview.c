@@ -573,14 +573,17 @@ EM_JS(int, DrawPanel, (const ibitmap *icon, const char *text, const char *title,
 // SetHardTimer: one-shot timer (fires once after ms milliseconds)
 EM_JS(void, SetHardTimer, (const char *name, iv_timerproc tproc, int ms), {
     if (!Module._timers) Module._timers = {};
+    if (!Module._timerProcs) Module._timerProcs = {};
     var timerName = UTF8ToString(name);
     if (Module._timers[timerName]) {
         clearTimeout(Module._timers[timerName]);
         delete Module._timers[timerName];
     }
     if (tproc && ms > 0) {
+        Module._timerProcs[timerName] = tproc;
         Module._timers[timerName] = setTimeout(function() {
             delete Module._timers[timerName];
+            delete Module._timerProcs[timerName];
             Module.wasmTable.get(tproc)();
         }, ms);
     }
@@ -604,17 +607,89 @@ EM_JS(void, OpenMenu, (imenu *menu_ptr, int pos, int x, int y, iv_menuhandler hp
 
 EM_JS(void, SetWeakTimer, (const char *name, iv_timerproc tproc, int ms), {
     if (!Module._timers) Module._timers = {};
+    if (!Module._timerProcs) Module._timerProcs = {};
     var timerName = UTF8ToString(name);
     if (Module._timers[timerName]) {
         clearTimeout(Module._timers[timerName]);
         delete Module._timers[timerName];
     }
     if (tproc && ms > 0) {
+        Module._timerProcs[timerName] = tproc;
         Module._timers[timerName] = setTimeout(function() {
             delete Module._timers[timerName];
+            delete Module._timerProcs[timerName];
             Module.wasmTable.get(tproc)();
         }, ms);
     }
+});
+
+EM_JS(void, ClearTimer, (iv_timerproc tproc), {
+    if (!Module._timers || !Module._timerProcs) return;
+    for (var name in Module._timerProcs) {
+        if (Module._timerProcs[name] === tproc) {
+            if (Module._timers[name]) {
+                clearTimeout(Module._timers[name]);
+                delete Module._timers[name];
+            }
+            delete Module._timerProcs[name];
+        }
+    }
+});
+
+// DrawBitmap: renders a 1-bit (or 8-bit) ibitmap to canvas via the JS api
+// ibitmap layout: u16 width, u16 height, u16 depth, u16 scanline, u8 data[]
+EM_JS(void, DrawBitmap, (int x, int y, const ibitmap *b), {
+    var w        = HEAPU16[(b >> 1)];
+    var h        = HEAPU16[(b >> 1) + 1];
+    var depth    = HEAPU16[(b >> 1) + 2];
+    var scanline = HEAPU16[(b >> 1) + 3];
+    var dataStart = b + 8;
+    var dataLen   = h * scanline;
+    var data = HEAPU8.subarray(dataStart, dataStart + dataLen);
+    Module.api.DrawBitmap(x, y, w, h, depth, scanline, data);
+});
+
+// Virtual file system backed by localStorage for iv_* I/O
+EM_JS(int, iv_access, (const char *pathname, int mode), {
+    var path = UTF8ToString(pathname);
+    return (localStorage.getItem("iv_fs:" + path) !== null) ? 0 : -1;
+});
+
+EM_JS(FILE*, iv_fopen, (const char *name, const char *mode), {
+    if (!Module._ivFiles) { Module._ivFiles = {}; Module._ivNextFd = 256; }
+    var path    = UTF8ToString(name);
+    var modeStr = UTF8ToString(mode);
+    var fd      = Module._ivNextFd++;
+    var content = (modeStr[0] === "r") ? (localStorage.getItem("iv_fs:" + path) || "") : "";
+    Module._ivFiles[fd] = { content: content, mode: modeStr, path: path };
+    return fd;
+});
+
+EM_JS(char*, iv_fgets, (char *str, int n, FILE *fp), {
+    var file = Module._ivFiles && Module._ivFiles[fp];
+    if (!file || file.pos >= file.content.length) return 0;
+    var line = file.content.slice(file.pos || 0, (file.pos || 0) + n - 1);
+    file.pos = (file.pos || 0) + line.length;
+    stringToUTF8(line, str, n);
+    return str;
+});
+
+EM_JS(int, iv_fwrite, (const void *buffer, int size, int count, FILE *fp), {
+    var file = Module._ivFiles && Module._ivFiles[fp];
+    if (!file) return 0;
+    var bytes = HEAPU8.subarray(buffer, buffer + size * count);
+    var str = "";
+    for (var i = 0; i < bytes.length; i++) str += String.fromCharCode(bytes[i]);
+    file.content = (file.content || "") + str;
+    return count;
+});
+
+EM_JS(int, iv_fclose, (FILE *fp), {
+    var file = Module._ivFiles && Module._ivFiles[fp];
+    if (!file) return -1;
+    if (file.mode[0] !== "r") localStorage.setItem("iv_fs:" + file.path, file.content);
+    delete Module._ivFiles[fp];
+    return 0;
 });
 
 EM_JS(void, Message, (int icon, const char *title, const char *text, int timeout), {

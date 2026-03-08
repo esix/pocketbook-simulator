@@ -36,6 +36,35 @@ helloworld: $(HELLOWORLD_SRC) lib/inkview.o
 game2048: projects/2048/game2048.c lib/inkview.o
 	$(CC) $(CFLAGS) projects/2048/game2048.c lib/inkview.o -o projects/2048/index.mjs $(EXPORTED_FUNCTIONS) $(EXPORTED_RUNTIME) $(ADDITIONAL_LIBS) $(MODULARIZE)
 
+TICTACTOE_SRC = projects/tictactoe/src/main.cpp \
+                projects/tictactoe/src/handler/eventHandler.cpp \
+                projects/tictactoe/src/handler/menuHandler.cpp \
+                projects/tictactoe/src/ui/game.cpp \
+                projects/tictactoe/src/ui/field.cpp
+
+tictactoe: $(TICTACTOE_SRC) lib/inkview.o
+	$(CC) $(CFLAGS) \
+		-Iprojects/tictactoe/src/handler \
+		-Iprojects/tictactoe/src/ui \
+		$(TICTACTOE_SRC) lib/inkview.o \
+		-o projects/$@/index.mjs \
+		$(EXPORTED_FUNCTIONS) $(EXPORTED_RUNTIME) $(ADDITIONAL_LIBS) $(MODULARIZE)
+
+PBTETRIS_SRC = projects/pbtetris/src/main.cpp \
+               projects/pbtetris/src/game.cpp \
+               projects/pbtetris/src/tetris.cpp \
+               projects/pbtetris/src/buttons.cpp \
+               projects/pbtetris/src/highscore.cpp \
+               projects/pbtetris/src/debug.cpp \
+               projects/pbtetris/cimages/images.c
+
+pbtetris: $(PBTETRIS_SRC) lib/inkview.o
+	$(CC) $(CFLAGS) \
+		-Iprojects/pbtetris/src \
+		$(PBTETRIS_SRC) lib/inkview.o \
+		-o projects/$@/index.mjs \
+		$(EXPORTED_FUNCTIONS) $(EXPORTED_RUNTIME) $(ADDITIONAL_LIBS) $(MODULARIZE)
+
 demo04: projects/demo04/demo04.cpp lib/inkview.o
 	$(CC) $(CFLAGS) projects/demo04/demo04.cpp lib/inkview.o -o projects/$@/index.mjs $(EXPORTED_FUNCTIONS) $(EXPORTED_RUNTIME) $(ADDITIONAL_LIBS) $(MODULARIZE)
 

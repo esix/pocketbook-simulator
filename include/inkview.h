@@ -166,6 +166,9 @@ extern "C"
 #define EVT_TOUCHDOWN 41
 #define EVT_TOUCHMOVE 42
 
+#define EVT_BACKGROUND 45
+#define EVT_FOREGROUND 46
+
 #define EVT_SNAPSHOT 71
 #define EVT_FSCHANGED 72
 

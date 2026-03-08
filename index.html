@@ -18,6 +18,8 @@
         <li data-project="demo07">demo07</li>
         <li data-project="calc">calc</li>
         <li data-project="2048">2048</li>
+        <li data-project="tictactoe">tictactoe</li>
+        <li data-project="pbtetris">pbtetris</li>
       </ul>
     </div>
     <button id="sidebar-toggle" title="Toggle sidebar">&#9664;</button>
@@ -59,6 +61,14 @@
           <div class="app-icon-box">2048</div>
           <div class="app-name">2048</div>
         </div>
+        <div class="app-tile" data-project="tictactoe">
+          <div class="app-icon-box">XO</div>
+          <div class="app-name">Tic-Tac-Toe</div>
+        </div>
+        <div class="app-tile" data-project="pbtetris">
+          <div class="app-icon-box">&#x25A6;</div>
+          <div class="app-name">Tetris</div>
+        </div>
       </div>
     </div>
 
@@ -74,7 +84,7 @@
   </div>
 
   <script>
-    var PROJECTS = ['helloworld', 'touch', 'demo01', 'demo04', 'demo06', 'demo07', 'calc', '2048'];
+    var PROJECTS = ['helloworld', 'touch', 'demo01', 'demo04', 'demo06', 'demo07', 'calc', '2048', 'tictactoe', 'pbtetris'];
     var hash = location.hash.slice(1);
     var activeProject = PROJECTS.indexOf(hash) >= 0 ? hash : null;
 
@@ -116,7 +126,7 @@
   <script type="module">
     import { initApp } from './simulator/inkview-emu.mjs';
     var hash = location.hash.slice(1);
-    var project = ['helloworld', 'touch', 'demo01', 'demo04', 'demo06', 'demo07', 'calc', '2048'].indexOf(hash) >= 0 ? hash : null;
+    var project = ['helloworld', 'touch', 'demo01', 'demo04', 'demo06', 'demo07', 'calc', '2048', 'tictactoe', 'pbtetris'].indexOf(hash) >= 0 ? hash : null;
     if (project) initApp(project);
   </script>
 
