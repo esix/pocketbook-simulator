@@ -2,7 +2,7 @@
 
 A browser-based simulator for [PocketBook](https://pocketbook.ch) e-reader applications. Write or port real PocketBook C/C++ apps using the InkView SDK, compile them to WebAssembly with Emscripten, and run them directly in the browser — no device needed.
 
-<video src="doc/screencast.webm" controls width="600"></video>
+<video src="https://github.com/user-attachments/assets/d55d0942-a612-4cea-8dfb-9cb5f562333e" controls width="600"></video>
 
 ## How it works
 
