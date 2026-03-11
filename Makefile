@@ -6,7 +6,7 @@ EXPORTED_RUNTIME = -s EXPORTED_RUNTIME_METHODS='["UTF8ToString","wasmTable","len
 ADDITIONAL_LIBS = -s USE_FREETYPE=1 -s USE_ZLIB=1
 MODULARIZE = -s MODULARIZE=1 -s 'EXPORT_NAME="createPocketBookModule"' -s EXPORT_ES6=1 -O3 -s AGGRESSIVE_VARIABLE_ELIMINATION=1
 
-all: demo01
+all: demo01 demo04 demo06 demo07 calc touch helloworld game2048 tictactoe pbtetris
 
 lib/inkview.o: src/inkview.c
 	$(CC) $(CFLAGS) -c $< -o $@ $(ADDITIONAL_LIBS) $(EXPORTED_FUNCTIONS) $(EXPORTED_RUNTIME)
@@ -75,7 +75,16 @@ demo07: projects/demo07/demo07.cpp lib/inkview.o
 	$(CC) $(CFLAGS) projects/demo07/demo07.cpp lib/inkview.o -o projects/$@/index.mjs $(EXPORTED_FUNCTIONS) $(EXPORTED_RUNTIME) $(ADDITIONAL_LIBS) -s USE_SQLITE3=1 $(MODULARIZE)
 
 clean:
-	rm -f lib/*.o lib/*.a projects/demo01/*.mjs projects/demo01/*.wasm
+	rm -f lib/*.o lib/*.a projects/demo01/*.mjs projects/demo01/*.wasm \
+		projects/demo04/*.mjs projects/demo04/*.wasm \
+		projects/demo06/*.mjs projects/demo06/*.wasm \
+		projects/demo07/*.mjs projects/demo07/*.wasm \
+		projects/calc/*.mjs projects/calc/*.wasm \
+		projects/touch/*.mjs projects/touch/*.wasm \
+		projects/helloworld/*.mjs projects/helloworld/*.wasm \
+		projects/2048/*.mjs projects/2048/*.wasm \
+		projects/tictactoe/*.mjs projects/tictactoe/*.wasm \
+		projects/pbtetris/*.mjs projects/pbtetris/*.wasm
 
 .PHONY: all clean
 
